@@ -3,12 +3,53 @@ import './App.css'
 import { ProductForm } from './features/products/components/ProductForm'
 import { deleteProduct, getProducts } from './features/products/services/productService'
 import type { Product } from './features/products/types/product'
+import { connectToProductHub } from './features/products/services/productHub';
 
 function App() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [productToEdit, setProductToEdit] = useState<Product | null>(null)
+
+  useEffect(() => {
+    let cleanup: (() => Promise<void>) | undefined;
+    let cancelled = false;
+
+    async function connect() {
+      cleanup = await connectToProductHub(
+        (createdProduct) => {
+          setProducts((current) => [...current, createdProduct]);
+        },
+        (updatedProduct) => {
+          setProducts((current) =>
+            current.map((product) =>
+              product.id === updatedProduct.id ? updatedProduct : product,
+            ),
+          );
+        },
+        (deletedProductId) => {
+          setProducts((current) =>
+            current.filter((product) => product.id !== deletedProductId),
+          );
+
+          setProductToEdit((current) =>
+            current?.id === deletedProductId ? null : current,
+          );
+        },
+      );
+
+      if (cancelled) {
+        await cleanup();
+      }
+    }
+
+    void connect();
+
+    return () => {
+      cancelled = true;
+      void cleanup?.();
+    };
+  }, []);
 
   async function loadProducts(signal?: AbortSignal) {
     try {
