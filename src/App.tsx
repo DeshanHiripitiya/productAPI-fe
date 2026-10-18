@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import { ProductForm } from './features/products/components/ProductForm'
-import { getProducts } from './features/products/services/productService'
+import { deleteProduct, getProducts } from './features/products/services/productService'
 import type { Product } from './features/products/types/product'
 
 function App() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null)
 
   async function loadProducts(signal?: AbortSignal) {
     try {
@@ -49,7 +50,12 @@ function App() {
       </header>
 
       <section className="content-grid" aria-label="Product management">
-        <ProductForm onCreated={() => void loadProducts()} />
+        <ProductForm
+          key={productToEdit?.id ?? 'new'}
+          onCreated={() => void loadProducts()}
+          productToEdit={productToEdit}
+          onCancelEdit={() => setProductToEdit(null)}
+        />
 
         <section className="product-list-panel" aria-labelledby="product-list-title">
           <div className="section-heading">
@@ -81,6 +87,37 @@ function App() {
                   </span>
                   <span className="product-name">{product.name}</span>
                   <strong>${product.price.toFixed(2)}</strong>
+                  <div className="product-actions">
+                    <button
+                      className="row-action"
+                      type="button"
+                      onClick={() => setProductToEdit(product)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="row-action delete-action"
+                      type="button"
+                      onClick={async () => {
+                        if (!window.confirm(`Delete "${product.name}"?`)) return
+
+                        try {
+                          setError('')
+                          await deleteProduct(product.id)
+                          if (productToEdit?.id === product.id) setProductToEdit(null)
+                          await loadProducts()
+                        } catch (deleteError) {
+                          setError(
+                            deleteError instanceof Error
+                              ? deleteError.message
+                              : 'Could not delete the product.',
+                          )
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

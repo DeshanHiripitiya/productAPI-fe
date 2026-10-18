@@ -8,3 +8,5 @@ export interface CreateProductInput {
   name: string
   price: number
 }
+
+export type UpdateProductInput = CreateProductInput

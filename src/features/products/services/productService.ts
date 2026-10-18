@@ -1,4 +1,4 @@
-import type { CreateProductInput, Product } from '../types/product'
+import type { CreateProductInput, Product, UpdateProductInput } from '../types/product'
 
 const API_URL = 'http://localhost:5041/api/products'
 
@@ -33,4 +33,27 @@ export async function createProduct(product: CreateProductInput) {
   }
 
   return (await response.json()) as Product
+}
+
+export async function updateProduct(id: number, product: UpdateProductInput) {
+  const response = await fetch(`${API_URL}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(product),
+  })
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response))
+  }
+
+  if (response.status === 204) return
+  return (await response.json()) as Product
+}
+
+export async function deleteProduct(id: number) {
+  const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' })
+
+  if (!response.ok) {
+    throw new Error(await getErrorMessage(response))
+  }
 }

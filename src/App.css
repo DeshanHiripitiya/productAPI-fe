@@ -176,6 +176,14 @@ button:disabled {
   padding: 13px 18px;
 }
 
+.cancel-button {
+  width: 100%;
+  margin-top: 10px;
+  background: transparent;
+  color: var(--text);
+  padding: 8px 18px;
+}
+
 .secondary-button {
   margin-top: 16px;
   background: var(--accent-bg);
@@ -203,7 +211,7 @@ button:disabled {
 
 .product-row {
   display: grid;
-  grid-template-columns: 42px 1fr auto;
+  grid-template-columns: 42px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 14px;
   border: 1px solid var(--border);
@@ -233,6 +241,22 @@ button:disabled {
 .product-row strong {
   color: var(--text-h);
   font-size: 0.95rem;
+}
+
+.product-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.row-action {
+  background: var(--accent-bg);
+  color: var(--accent);
+  padding: 7px 9px;
+}
+
+.delete-action {
+  background: #fff0ef;
+  color: #c0392b;
 }
 
 .empty-state {
@@ -265,5 +289,13 @@ button:disabled {
 
   .list-status {
     display: none;
+  }
+
+  .product-row {
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+  }
+
+  .product-actions {
+    grid-column: 2 / -1;
   }
 }

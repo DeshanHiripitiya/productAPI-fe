@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { createProduct } from '../services/productService'
+import { createProduct, updateProduct } from '../services/productService'
+import type { Product } from '../types/product'
 
 interface ProductFormProps {
   onCreated: () => void
+  productToEdit: Product | null
+  onCancelEdit: () => void
 }
 
 interface FormValues {
@@ -13,8 +16,12 @@ interface FormValues {
 
 const initialValues: FormValues = { name: '', price: '' }
 
-export function ProductForm({ onCreated }: ProductFormProps) {
-  const [values, setValues] = useState(initialValues)
+export function ProductForm({ onCreated, productToEdit, onCancelEdit }: ProductFormProps) {
+  const [values, setValues] = useState<FormValues>(() =>
+    productToEdit
+      ? { name: productToEdit.name, price: String(productToEdit.price) }
+      : initialValues,
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -42,9 +49,14 @@ export function ProductForm({ onCreated }: ProductFormProps) {
     setError('')
 
     try {
-      await createProduct({ name, price })
+      if (productToEdit) {
+        await updateProduct(productToEdit.id, { name, price })
+      } else {
+        await createProduct({ name, price })
+      }
       setValues(initialValues)
       onCreated()
+      onCancelEdit()
     } catch (submissionError) {
       setError(
         submissionError instanceof Error
@@ -61,7 +73,7 @@ export function ProductForm({ onCreated }: ProductFormProps) {
       <div className="form-heading">
         <div>
           <p className="eyebrow">Product catalog</p>
-          <h2>Create a product</h2>
+          <h2>{productToEdit ? 'Update product' : 'Create a product'}</h2>
         </div>
         <span className="form-badge">New</span>
       </div>
@@ -102,8 +114,28 @@ export function ProductForm({ onCreated }: ProductFormProps) {
       )}
 
       <button className="primary-button" type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Creating...' : 'Create product'}
+        {isSubmitting
+          ? productToEdit
+            ? 'Updating...'
+            : 'Creating...'
+          : productToEdit
+            ? 'Update product'
+            : 'Create product'}
       </button>
+      {productToEdit && (
+        <button
+          className="cancel-button"
+          type="button"
+          onClick={() => {
+            setValues(initialValues)
+            setError('')
+            onCancelEdit()
+          }}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </button>
+      )}
     </form>
   )
 }
