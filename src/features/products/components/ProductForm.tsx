@@ -75,7 +75,7 @@ export function ProductForm({ onCreated, productToEdit, onCancelEdit }: ProductF
           <p className="eyebrow">Product catalog</p>
           <h2>{productToEdit ? 'Update product' : 'Create a product'}</h2>
         </div>
-        <span className="form-badge">New</span>
+        <span className="form-badge">{productToEdit ? 'Editing' : 'New'}</span>
       </div>
 
       <div className="form-fields">
